@@ -66,6 +66,10 @@
       margin-bottom: 2rem;
     }
 
+    .chart-box canvas {
+      max-height: 200px;
+    }
+
     footer {
       background-color: rgba(248, 200, 220, 0.9);
       color: #000000;
@@ -82,31 +86,24 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="/logo.png" alt="Logo" style="height: 40px; margin-right: 10px;">
-                <span class="fw-bold">Nandary Bot</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item me-3">
-                        <a class="nav-link" href="index.html">Inicio</a>
-                    </li>
-                    <li class="nav-item me-3">
-                        <a class="nav-link" href="guild_list.html">Miembros</a>
-                    </li>
-                    <li class="nav-item me-3">
-                        <a class="nav-link active" href="jugador.html">Jugador</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
+  <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/logo.png" alt="Logo">
+        <span class="fw-bold">Nandary Bot</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item me-3"><a class="nav-link" href="index.html">Inicio</a></li>
+          <li class="nav-item me-3"><a class="nav-link" href="guild_list.html">Miembros</a></li>
+          <li class="nav-item me-3"><a class="nav-link active" href="jugador.html">Jugador</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
   <div class="container mt-4">
     <h1 class="mb-4">Estadísticas Individuales</h1>
@@ -133,12 +130,12 @@
 
     <div class="chart-box">
       <h5 class="text-center">Gráfico de Poder del Jugador</h5>
-      <canvas id="graficoPoderJugador" height="200"></canvas>
+      <canvas id="graficoPoderJugador"></canvas>
     </div>
 
     <div class="chart-box">
       <h5 class="text-center">Gráfico de Cacería del Jugador</h5>
-      <canvas id="graficoCaceriaJugador" height="200"></canvas>
+      <canvas id="graficoCaceriaJugador"></canvas>
     </div>
   </div>
 
@@ -152,6 +149,5 @@
 
   <script src="script_jugador.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
