@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guild List - Nandary Bot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/ico" href="/logo.png" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: url('/fondo.png') no-repeat center center fixed;
+      background-size: cover;
+      background-attachment: fixed;
+      color: #000000;
+      padding-top: 60px;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.3);
+      z-index: -1;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .navbar {
+      background-color: rgba(248, 200, 220, 0.9) !important;
+      backdrop-filter: blur(5px);
+    }
+
+    .navbar .nav-link, 
+    .navbar .navbar-brand {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.3rem;
+      color: #4b1138 !important;
+      font-weight: bold;
+      margin-right: 1rem;
+      transition: color 0.3s ease;
+    }
+
+    .navbar .nav-link:hover {
+      color: #000000 !important;
+    }
+
+    .hero-nandary {
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 30px 15px;
+      color: #000000;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .alert {
+      background-color: rgba(255, 255, 255, 0.8);
+      color: #4b1138;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(214, 51, 132, 0.2);
+      padding: 15px;
+    }
+
+    footer {
+      background-color: rgba(248, 200, 220, 0.9);
+      color: #4b1138;
+      font-size: 0.9rem;
+      backdrop-filter: blur(5px);
+      text-align: center;
+      padding: 10px;
+    }
+
+    footer i {
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/logo.png" alt="Logo" style="max-height: 40px;" class="me-2" />
+        <span class="logo-title">Nandary Bot</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+            
+            <li class="nav-item"><a class="nav-link" href="#" id="navEstadisticas">Estadísticas del Gremio</a></li>
+        </ul>
+
+      </div>
+    </div>
+  </nav>
+
+  
+
+  <main>
+  <div class="container my-4 bg-white bg-opacity-75 p-4 rounded" id="contenidoGuildList">
+    <h2 class="mb-4 text-center">Listado de Miembros del Gremio</h2>
+
+    <div class="mb-4 d-flex justify-content-center gap-3 flex-wrap">
+  <select id="selectorArchivosGuildList" class="form-select" style="max-width: 300px;">
+    <option disabled selected>Cargando archivos...</option>
+  </select>
+</div>
+
+
+    <!-- TABLA DE GUILD LIST -->
+    <div class="table-responsive mt-3">
+      <table class="table table-bordered text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>IGG ID</th>
+            <th>Nombre</th>
+            <th>Rango</th>
+            <th>Poder</th>
+            <th>Poder Anterior</th>
+            <th>Variación</th>
+            <th>Kills</th>
+            <th>Kills Anteriores</th>
+            <th>Variación K</th>
+          </tr>
+        </thead>
+        <tbody id="tablaGuildListBody">
+          <!-- Filas dinámicas -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+  <!-- Footer -->
+  <footer class="text-center py-3 mt-5">
+    <div class="container">
+      <p class="mb-0">
+        <i class="bi bi-c-circle"></i> 2025 Visor de Gremios | Hecho con <i class="bi bi-heart-fill text-danger"></i> por Arielygnacio
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('navEstadisticas').addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const gremio = localStorage.getItem('gremio');
+  const password = localStorage.getItem('auth_' + gremio);
+
+  if (!gremio || !password) {
+    alert('Acceso inválido. Volvé a iniciar sesión.');
+    window.location.href = '/'; // o a tu pantalla de login
+    return;
+  }
+
+  // Redirigimos a la nueva página
+  window.location.href = `estadisticas.html?gremio=${encodeURIComponent(gremio)}`;
+});
+
+  </script>
+
+  <script src="/script_guild_list.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</body>
+</html>
