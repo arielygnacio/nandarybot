@@ -593,6 +593,21 @@ app.get('/api/guild_list/:gremio/caceria_por_jugador', autenticarPorHeader, asyn
   }
 });
 
+app.get('/api/guilds', autenticarPorHeader, (req, res) => {
+  try {
+    if (!fs.existsSync(basePath)) {
+      return res.status(404).json({ error: 'Carpeta base no encontrada' });
+    }
+
+    const gremios = fs.readdirSync(basePath)
+      .filter(nombre => fs.statSync(path.join(basePath, nombre)).isDirectory());
+
+    res.json(gremios);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al listar gremios' });
+  }
+});
 
 
 
