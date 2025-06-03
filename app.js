@@ -12,7 +12,8 @@ const autenticarPorHeader = require('./middlewares/auth');
 const gremioPasswords = require('./gremio.json');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
 const basePath = path.join(__dirname, '..', 'stats_exported');
 
 // Configuración de sesiones
