@@ -13,7 +13,7 @@ const gremioPasswords = require('./gremio.json');
 
 const app = express();
 const PORT = 3000;
-const basePath = path.join(__dirname, '..', 'stats exported');
+const basePath = path.join(__dirname, '..', 'stats_exported');
 
 // Configuración de sesiones
 app.use(session({
