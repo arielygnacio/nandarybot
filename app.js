@@ -1,7 +1,9 @@
 const express = require('express');
-const xlsx = require('xlsx');
-const fs = require('fs');
+const session = require('express-session');
 const path = require('path');
+const fs = require('fs');
+const xlsx = require('xlsx');
+const csv = require('csv-parser');
 
 const {
   extraerFechaDeNombreArchivo,
@@ -9,45 +11,47 @@ const {
   limpiarNumero
 } = require('./utils/utils');
 
-const csv = require('csv-parser');
-const session = require('express-session');
-
-// Middleware de autenticación
 const autenticarPorHeader = require('./middlewares/auth');
-
-// Archivo de contraseñas por gremio
 const gremioPasswords = require('./gremio.json');
 
-const app = express();  // ✅ Ahora app está declarado antes de usarse
+const app = express();
 const PORT = process.env.PORT || 3000;
-
 const basePath = path.join(__dirname, '..', 'stats_exported');
 
-// Configuración de sesiones
+// Configuración de sesiones primero
 app.use(session({
   secret: 'clave-secreta',
   resave: false,
   saveUninitialized: true
 }));
 
+// Middleware general
 app.use(express.json());
 app.use(express.static('public'));
 
-// Rutas públicas (no requieren autenticación)
+// Rutas públicas (antes del auth)
 const accesoRoutes = require('./routes/acceso');
 app.use('/api/acceso', accesoRoutes);
 
-// ⛔ Aplica autenticación global a partir de aquí
+// ⛔ Middleware de autenticación global para lo que sigue
 app.use(autenticarPorHeader);
 
-// Rutas privadas (todas protegidas por el middleware)
+// Rutas protegidas
 const jugadoresRoutes = require('./routes/jugadores');
 app.use('/', jugadoresRoutes);
 
 const evolucionRoutes = require('./routes/evolucion');
 app.use('/api/evolucion', evolucionRoutes);
 
-// ... otras rutas protegidas
+// ✅ Ahora sí, agregá la ruta del festival protegida y con sesión ya disponible
+const guildFestivalRouter = require('./routes/guild_festival');
+app.use('/api/guild_festival', guildFestivalRouter);
+
+// Iniciá el servidor
+app.listen(PORT, () => {
+  console.log(`Servidor en http://localhost:${PORT}`);
+});
+
 
 
 

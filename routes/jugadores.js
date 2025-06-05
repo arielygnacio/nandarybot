@@ -8,12 +8,10 @@ const {
   limpiarNumero
 } = require('../utils/utils');
 
-const autenticarPorHeader = require('../middlewares/auth');
-
 const router = express.Router();
 const basePath = path.join(__dirname, '..', 'stats_exported');
 
-router.get('/listado_jugadores', autenticarPorHeader, (req, res) => {
+router.get('/listado_jugadores', (req, res) => {
   const gremio = req.gremio;
   const carpetaGiftStats = path.join(basePath, gremio, 'gift_stats');
 

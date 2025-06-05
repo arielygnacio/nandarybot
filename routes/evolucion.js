@@ -3,7 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const csv = require('csv-parser');
 const { extraerFechaDeNombreArchivo, limpiarNumero } = require('../utils/utils');
-const autenticarPorHeader = require('../middlewares/auth');
 
 const router = express.Router();
 const basePath = path.join(__dirname, '..', '..', 'stats_exported');
@@ -52,12 +51,12 @@ function generarEvolucion({ carpetaTipo, campo }) {
 }
 
 // Rutas
-router.get('/poder_por_jugador', autenticarPorHeader, generarEvolucion({
+router.get('/poder_por_jugador', generarEvolucion({
   carpetaTipo: 'guild_list',
   campo: 'Might'
 }));
 
-router.get('/caceria_por_jugador', autenticarPorHeader, generarEvolucion({
+router.get('/caceria_por_jugador', generarEvolucion({
   carpetaTipo: 'gift_stats',
   campo: 'Hunt'
 }));
