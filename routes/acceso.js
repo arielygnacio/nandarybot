@@ -31,7 +31,7 @@ router.post('/', (req, res) => {
 
 // Ruta GET para obtener los nombres de los gremios
 router.get('/gremios', (req, res) => {
-  const statsPath = path.join(__dirname, '..', 'stats exported');
+  const statsPath = path.join(__dirname, '..', 'stats_exported');
 
   fs.readdir(statsPath, { withFileTypes: true }, (err, files) => {
     if (err) {
