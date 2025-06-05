@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const parse = require('csv-parse/lib/sync');
+const { parse } = require('csv-parse/sync');
 const router = express.Router();
 
 const autenticarPorHeader = require('../middlewares/auth');

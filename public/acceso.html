@@ -146,7 +146,7 @@
   <!-- SCRIPT -->
   <script>
     // Cargar los gremios
-    fetch('/api/gremios')
+    fetch('/api/acceso/gremios')
       .then(res => res.json())
       .then(data => {
         const select = document.getElementById('selectGremio');

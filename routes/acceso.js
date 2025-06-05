@@ -29,4 +29,22 @@ router.post('/', (req, res) => {
   }
 });
 
+// Ruta GET para obtener los nombres de los gremios
+router.get('/gremios', (req, res) => {
+  const statsPath = path.join(__dirname, '..', 'stats exported');
+
+  fs.readdir(statsPath, { withFileTypes: true }, (err, files) => {
+    if (err) {
+      console.error('Error al leer la carpeta de gremios:', err);
+      return res.status(500).json({ error: 'No se pudieron cargar los gremios' });
+    }
+
+    const gremios = files
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
+
+    res.json(gremios);
+  });
+});
+
 module.exports = router;
