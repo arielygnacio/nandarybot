@@ -2,6 +2,13 @@ const express = require('express');
 const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
+
+const {
+  extraerFechaDeNombreArchivo,
+  obtenerFechaLegible,
+  limpiarNumero
+} = require('./utils/utils');
+
 const csv = require('csv-parser');
 const session = require('express-session');
 
@@ -11,7 +18,7 @@ const autenticarPorHeader = require('./middlewares/auth');
 // Archivo de contraseñas por gremio
 const gremioPasswords = require('./gremio.json');
 
-const app = express();
+const app = express();  // ✅ Ahora app está declarado antes de usarse
 const PORT = process.env.PORT || 3000;
 
 const basePath = path.join(__dirname, '..', 'stats_exported');
@@ -26,9 +33,23 @@ app.use(session({
 app.use(express.json());
 app.use(express.static('public'));
 
-// Rutas externas
+// Rutas públicas (no requieren autenticación)
 const accesoRoutes = require('./routes/acceso');
 app.use('/api/acceso', accesoRoutes);
+
+// ⛔ Aplica autenticación global a partir de aquí
+app.use(autenticarPorHeader);
+
+// Rutas privadas (todas protegidas por el middleware)
+const jugadoresRoutes = require('./routes/jugadores');
+app.use('/', jugadoresRoutes);
+
+const evolucionRoutes = require('./routes/evolucion');
+app.use('/api/evolucion', evolucionRoutes);
+
+// ... otras rutas protegidas
+
+
 
 // Funciones auxiliares
 function obtenerGremiosDisponibles() {
