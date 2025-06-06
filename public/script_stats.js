@@ -12,12 +12,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Función para generar headers
-  function getAuthHeaders(gremio, password) {
-    return {
-      'Authorization': `${gremio}:${password}`
-    };
-  }
+  // ✅ Función corregida para generar headers de autenticación
+function getAuthHeaders(gremio, password) {
+  return {
+    'Authorization': `${gremio} ${password}`  // ← espacio en vez de dos puntos
+  };
+}
+
 
   // ========== GIFT_STATS ==========
   try {

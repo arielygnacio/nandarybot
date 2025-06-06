@@ -173,9 +173,10 @@
 
       fetch(`/api/gift_stats/files`, {
         headers: {
-          Authorization: `${gremio}:${clave}`
+          Authorization: `${gremio}:${clave}` // ← CORREGIDO: dos puntos
         }
       })
+
       .then(res => {
         if (!res.ok) throw new Error("Clave incorrecta");
         return res.json();

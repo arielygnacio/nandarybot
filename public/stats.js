@@ -1,9 +1,24 @@
+function fetchConAuth(url, options = {}) {
+  const gremio = localStorage.getItem("gremio");
+  const clave = localStorage.getItem("clave");
+
+  if (!gremio || !clave) {
+    return Promise.reject(new Error("Falta autenticación"));
+  }
+
+  options.headers = options.headers || {};
+  options.headers["Authorization"] = `${gremio} ${clave}`;
+
+  return fetch(url, options);
+}
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     const archivoSelect = document.getElementById('archivoSelect');
     const tablaContainer = document.getElementById('tablaContainer');
   
     try {
-      const res = await fetch('/api/gift_stats/files');
+      const res = await fetchConAuth('/api/gift_stats/files');
       const archivos = await res.json();
   
       if (archivos.length === 0) {
@@ -26,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
     async function cargarTabla(nombreArchivo) {
       try {
-        const res = await fetch(`/api/gift_stats/${nombreArchivo}`);
+        const res = await fetchConAuth(`/api/gift_stats/${nombreArchivo}`);
         const datos = await res.json();
   
         if (datos.length === 0) {

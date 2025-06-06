@@ -10,7 +10,7 @@ router.get('/files', (req, res) => {
   }
 
   const gremio = req.session.gremio;
-  const folderPath = path.join(__dirname, '..', 'stats exported', gremio, 'gift_stats');
+  const folderPath = path.join(__dirname, '..', 'stats_exported', gremio, 'gift_stats');
 
   fs.readdir(folderPath, (err, files) => {
     if (err) {
