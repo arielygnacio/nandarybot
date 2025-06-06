@@ -36,6 +36,10 @@ app.use('/api/acceso', accesoRoutes);
 // ⛔ Middleware de autenticación global para lo que sigue
 app.use(autenticarPorHeader);
 
+const giftStatsRoutes = require('./routes/gift_stats');
+app.use('/api/gift_stats', giftStatsRoutes);
+
+
 // Rutas protegidas
 const jugadoresRoutes = require('./routes/jugadores');
 app.use('/', jugadoresRoutes);
