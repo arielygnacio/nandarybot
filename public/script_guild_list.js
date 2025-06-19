@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const response = await fetch(`/api/guild_list/files/${gremio}`, {
+    const response = await fetch(`/api/guild_list/files`, {
       headers: {
         'Authorization': `${gremio}:${password}`
       }
@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // Rellenar el selector de archivos
     archivos.forEach(nombre => {
       const option = document.createElement('option');
       option.value = nombre;
@@ -33,12 +32,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       selectorArchivos.appendChild(option);
     });
 
-    // Cargar el archivo más reciente (último en la lista)
     const archivoReciente = archivos[archivos.length - 1];
     selectorArchivos.value = archivoReciente;
     cargarArchivoSeleccionado(archivoReciente, gremio, password);
 
-    // Listener para cambio manual
     selectorArchivos.addEventListener('change', () => {
       cargarArchivoSeleccionado(selectorArchivos.value, gremio, password);
     });
@@ -109,99 +106,3 @@ function renderizarTablaGuildList(datos) {
 
   tablaBody.innerHTML = html;
 }
-
-// Alternar visibilidad de secciones
-document.getElementById('navGuildList').addEventListener('click', () => {
-  document.getElementById('contenidoGuildList').classList.remove('d-none');
-  document.getElementById('estadisticasGuildList').classList.add('d-none');
-});
-
-let chartPoderJugador;
-let chartCaceriaJugador;
-
-// Cargar listado de jugadores
-const cargarListadoJugadores = async () => {
-  const gremio = localStorage.getItem('gremio');
-  const password = localStorage.getItem(`auth_${gremio}`);
-  const headers = { 'Authorization': `${gremio}:${password}` };
-
-  try {
-    const res = await fetch(`/api/guild_list/${gremio}/listado_jugadores`, { headers });
-    const json = await res.json();
-    const jugadorSelect = document.getElementById('jugadorSelect');
-    json.jugadores.forEach(jugador => {
-      const opt = document.createElement('option');
-      opt.value = jugador;
-      opt.textContent = jugador;
-      jugadorSelect.appendChild(opt);
-    });
-  } catch (error) {
-    console.error('Error al cargar jugadores:', error);
-  }
-};
-
-// Mostrar gráficos individuales
-const mostrarGraficosJugador = async (jugador) => {
-  if (!jugador) return;
-
-  const fechaInicio = formatAPIDate(new Date(fechaInicioInput.value));
-  const fechaFin = formatAPIDate(new Date(fechaFinInput.value));
-  const gremio = localStorage.getItem('gremio');
-  const password = localStorage.getItem(`auth_${gremio}`);
-  const headers = { 'Authorization': `${gremio}:${password}` };
-
-  try {
-    // Poder individual
-    const resPoder = await fetch(`/api/guild_list/${gremio}/poder_por_jugador?jugador=${encodeURIComponent(jugador)}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, { headers });
-    const jsonPoder = await resPoder.json();
-    const fechasPoder = jsonPoder.datos.map(d => d.fecha);
-    const valoresPoder = jsonPoder.datos.map(d => d.might);
-
-    if (chartPoderJugador) chartPoderJugador.destroy();
-    chartPoderJugador = new Chart(document.getElementById('graficoPoderJugador'), {
-      type: 'line',
-      data: {
-        labels: fechasPoder,
-        datasets: [{
-          label: `Poder de ${jugador}`,
-          data: valoresPoder,
-          borderColor: 'rgb(153, 102, 255)',
-          tension: 0.3,
-          fill: true
-        }]
-      }
-    });
-
-    // Cacería individual
-    const resCaceria = await fetch(`/api/guild_list/${gremio}/caceria_por_jugador?jugador=${encodeURIComponent(jugador)}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, { headers });
-    const jsonCaceria = await resCaceria.json();
-    const fechasCaceria = jsonCaceria.datos.map(d => d.fecha);
-    const valoresCaceria = jsonCaceria.datos.map(d => d.kills);
-
-    if (chartCaceriaJugador) chartCaceriaJugador.destroy();
-    chartCaceriaJugador = new Chart(document.getElementById('graficoCaceriaJugador'), {
-      type: 'bar',
-      data: {
-        labels: fechasCaceria,
-        datasets: [{
-          label: `Cacería de ${jugador}`,
-          data: valoresCaceria,
-          backgroundColor: 'rgba(255, 99, 132, 0.6)',
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 1
-        }]
-      }
-    });
-
-  } catch (error) {
-    console.error('Error al mostrar datos individuales:', error);
-  }
-};
-
-// Evento al cambiar el jugador seleccionado
-document.getElementById('jugadorSelect').addEventListener('change', (e) => {
-  mostrarGraficosJugador(e.target.value);
-});
-
-// Cargar listado al inicio
-cargarListadoJugadores();

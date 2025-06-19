@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const cargarJugadores = async () => {
     try {
+      selectJugador.innerHTML = ''; // limpiar opciones previas
       const res = await fetch(`/api/guild_list/${gremio}/listado_jugadores`, { headers });
       const data = await res.json();
       if (data.jugadores) {
@@ -32,6 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
           option.textContent = nombre;
           selectJugador.appendChild(option);
         });
+        if (data.jugadores.length > 0) {
+          selectJugador.value = data.jugadores[0];
+          actualizarGraficosJugador();
+        }
       }
     } catch (err) {
       console.error("Error cargando jugadores:", err);
@@ -41,16 +46,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const actualizarGraficosJugador = async () => {
     const jugador = selectJugador.value;
     if (!jugador) return;
+    if (!fechaInicioInput.value || !fechaFinInput.value) {
+      console.warn('Fechas no válidas para actualizar gráficos');
+      return;
+    }
 
     const fechaInicio = formatAPIDate(new Date(fechaInicioInput.value));
     const fechaFin = formatAPIDate(new Date(fechaFinInput.value));
 
+    if (fechaInicio > fechaFin) {
+      alert('La fecha de inicio no puede ser mayor a la fecha de fin.');
+      return;
+    }
+
     try {
+      // Poder
       const resPoder = await fetch(`/api/guild_list/${gremio}/poder_por_jugador?jugador=${encodeURIComponent(jugador)}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, { headers });
       const jsonPoder = await resPoder.json();
 
-      const fechasPoder = jsonPoder.datos.map(e => e.fecha);
-      const valoresPoder = jsonPoder.datos.map(e => e.might);
+      if (!jsonPoder || !Array.isArray(jsonPoder)) {
+        console.error('Respuesta de poder no válida:', jsonPoder);
+        return;
+      }
+
+      const fechasPoder = jsonPoder.map(e => e.fecha);
+      const valoresPoder = jsonPoder.map(e => e.might);
 
       if (chartPoderJugador) chartPoderJugador.destroy();
       chartPoderJugador = new Chart(document.getElementById('graficoPoderJugador'), {
@@ -68,11 +88,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      const resCaceria = await fetch(`/api/guild_list/${gremio}/caceria_por_jugador?jugador=${encodeURIComponent(jugador)}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, { headers });
+      // Cacería
+      const resCaceria = await fetch(`/api/guild_list/caceria_por_jugador?jugador=${encodeURIComponent(jugador)}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, { headers });
+
+
       const jsonCaceria = await resCaceria.json();
+      console.log('Respuesta cacería:', jsonCaceria);
+
+      if (!jsonCaceria || !Array.isArray(jsonCaceria.datos)) {
+        console.error('Respuesta de cacería no válida:', jsonCaceria);
+        return;
+      }
 
       const fechasCaceria = jsonCaceria.datos.map(e => e.fecha);
-      const valoresCaceria = jsonCaceria.datos.map(e => e.kills);
+      const valoresCaceria = jsonCaceria.datos.map(e => Number(e.kills) || 0);
+      console.log('Fechas cacería:', fechasCaceria);
+      console.log('Valores cacería:', valoresCaceria);
 
       if (chartCaceriaJugador) chartCaceriaJugador.destroy();
       chartCaceriaJugador = new Chart(document.getElementById('graficoCaceriaJugador'), {

@@ -4,13 +4,13 @@ const path = require('path');
 const { parse } = require('csv-parse/sync');
 const router = express.Router();
 
-const autenticarPorHeader = require('../middlewares/auth');
+const autenticarPorHeader = require('../middleware/auth');
 router.use(autenticarPorHeader);
 
 // Ruta para obtener la lista de fechas (nombres de archivos CSV)
 router.get('/fechas', async (req, res) => {
   const gremio = req.gremio;
-  const folder = path.join(__dirname, '..', 'stats exported', gremio, 'guild_festival');
+  const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'guild_festival');
 
   try {
     const archivos = await fs.promises.readdir(folder);
@@ -29,7 +29,7 @@ router.get('/fechas', async (req, res) => {
 router.get('/', async (req, res) => {
   const gremio = req.gremio;
   const { fecha } = req.query;
-  const folder = path.join(__dirname, '..', 'stats exported', gremio, 'guild_festival');
+  const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'guild_festival');
 
   try {
     let fileName;
@@ -52,6 +52,7 @@ router.get('/', async (req, res) => {
     const registros = parse(contenido, {
       columns: true,
       skip_empty_lines: true,
+      delimiter: ';'  // ← Agrega esta línea
     });
 
     res.json(registros);

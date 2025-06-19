@@ -55,7 +55,8 @@ async function cargarFechasDisponibles(gremio, password) {
 }
 
 async function cargarDatosGuildFestival(gremio, password, fecha = '') {
-    const response = await fetch(`/api/guild_festival${fecha ? `?fecha=${fecha}` : ''}`, {
+    const response = await fetch(`/api/guild_festival${fecha ? `?fecha=${encodeURIComponent(fecha)}` : ''}`, {
+
         headers: {
             'Authorization': `${gremio}:${password}`
         }

@@ -1,3 +1,4 @@
+
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
@@ -11,14 +12,14 @@ const {
   limpiarNumero
 } = require('./utils/utils');
 
-const autenticarPorHeader = require('./middlewares/auth');
+const autenticarPorHeader = require('./middleware/auth');
 const gremioPasswords = require('./gremio.json');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const basePath = path.join(__dirname, '..', 'stats_exported');
 
-// Configuración de sesiones primero
+// Sesiones
 app.use(session({
   secret: 'clave-secreta',
   resave: false,
@@ -29,33 +30,31 @@ app.use(session({
 app.use(express.json());
 app.use(express.static('public'));
 
-// Rutas públicas (antes del auth)
+// 🔓 Rutas públicas
 const accesoRoutes = require('./routes/acceso');
 app.use('/api/acceso', accesoRoutes);
 
-// ⛔ Middleware de autenticación global para lo que sigue
-app.use(autenticarPorHeader);
-
-const giftStatsRoutes = require('./routes/gift_stats');
-app.use('/api/gift_stats', giftStatsRoutes);
-
-
-// Rutas protegidas
+// 🔐 Rutas protegidas por sesión (ej. autenticación tradicional)
 const jugadoresRoutes = require('./routes/jugadores');
 app.use('/', jugadoresRoutes);
 
 const evolucionRoutes = require('./routes/evolucion');
 app.use('/api/evolucion', evolucionRoutes);
 
-// ✅ Ahora sí, agregá la ruta del festival protegida y con sesión ya disponible
-const guildFestivalRouter = require('./routes/guild_festival');
-app.use('/api/guild_festival', guildFestivalRouter);
+// 🔐 Rutas protegidas por header (para visor)
+const giftStatsRoutes = require('./routes/gift_stats');
+app.use('/api/gift_stats', autenticarPorHeader, giftStatsRoutes);
 
-// Iniciá el servidor
-app.listen(PORT, () => {
-  console.log(`Servidor en http://localhost:${PORT}`);
-});
+const guildListRoutes = require('./routes/guild_list');
+app.use('/api/guild_list', autenticarPorHeader, guildListRoutes);
 
+const guildFestivalRoutes = require('./routes/guild_festival');
+app.use('/api/guild_festival', autenticarPorHeader, guildFestivalRoutes);
+
+app.use('/api/guild_list', require('./routes/estadisticas'));
+
+const giftStatsRouter = require('./routes/gift_stats');
+app.use('/api/gift_stats', giftStatsRouter);
 
 
 
@@ -640,7 +639,10 @@ app.get('/api/guilds', autenticarPorHeader, (req, res) => {
 
 
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+
+// 👇 Esto debe estar al final de app.js y fuera de condicionales
+  app.listen(3000, () => {
+    console.log('Servidor corriendo en http://localhost:3000');
+  });
+
+

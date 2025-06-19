@@ -36,8 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const resPoder = await fetch(`/api/guild_list/${gremio}/might_por_fecha?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&_=${Date.now()}`, { headers });
       const jsonPoder = await resPoder.json();
 
-      const fechasPoder = jsonPoder.datos.map(e => e.fecha);
-      const valoresPoder = jsonPoder.datos.map(e => e.might);
+      console.log("Respuesta de poder:", jsonPoder);
+
+      // Corregido para acceder directamente al array
+      const fechasPoder = jsonPoder.map(e => e.fecha);
+      const valoresPoder = jsonPoder.map(e => e.total);
 
       if (chartPoder) chartPoder.destroy();
       chartPoder = new Chart(document.getElementById('graficoPoder'), {
@@ -93,11 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // Cacería
-      const resCaceria = await fetch(`/api/guild_list/${gremio}/kills_por_fecha?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&_=${Date.now()}`, { headers });
-      const jsonCaceria = await resCaceria.json();
+      // Cacería
+        const resCaceria = await fetch(`/api/guild_list/${gremio}/kills_por_fecha?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&_=${Date.now()}`, { headers });
+        const jsonCaceria = await resCaceria.json();
 
-      const fechasCaceria = jsonCaceria.datos.map(e => e.fecha);
-      const valoresCaceria = jsonCaceria.datos.map(e => e.kills);
+        console.log("Respuesta de cacería:", jsonCaceria);
+
+        const fechasCaceria = jsonCaceria.map(e => e.fecha);
+        const valoresCaceria = jsonCaceria.map(e => e.kills);
+
+
 
       if (chartCaceria) chartCaceria.destroy();
       chartCaceria = new Chart(document.getElementById('graficoCaceria'), {
@@ -105,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
           labels: fechasCaceria,
           datasets: [{
-            label: 'Cacería Total ',
+            label: 'Cacería Total',
             data: valoresCaceria,
             borderColor: 'rgb(75, 97, 192)',
             backgroundColor: 'rgba(77, 75, 192, 0.2)',

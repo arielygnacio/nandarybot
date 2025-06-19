@@ -306,18 +306,18 @@ body {
 
     // Obtener último archivo y cargar los datos
     fetch(`/api/archivos/${gremio}/gift_stats`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
+      method: 'GET',
+      headers: { 'Authorization': `${gremio}:${password}` }
     })
+
     .then(res => res.json())
     .then(archivos => {
       const ultimoArchivo = archivos.sort().reverse()[0];
       return fetch(`/api/csv/${gremio}/gift_stats/${ultimoArchivo}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+        method: 'GET',
+        headers: { 'Authorization': `${gremio}:${password}` }
       });
+
     })
     .then(res => res.json())
     .then(data => {
@@ -410,18 +410,23 @@ document.getElementById('btnFiltrarFechas').addEventListener('click', () => {
     return;
   }
 
+  // Mostrar la tabla y ocultar gráficos
+  document.querySelectorAll('.col-md-6').forEach(el => el.classList.add('d-none'));
+  document.getElementById('seccionCaceria').classList.remove('d-none');
+  document.getElementById('contenido').scrollIntoView({ behavior: 'smooth' });
+
   cargarTablaCaceria(inicio, fin);
-  
 });
+
 
 function cargarTablaCaceria(fechaInicio, fechaFin) {
   const columnasSeleccionadas = Array.from(document.querySelectorAll('.columna-check:checked')).map(c => c.value);
 
   fetch(`/api/archivos/${gremio}/gift_stats`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password })
+    method: 'GET',
+    headers: { 'Authorization': `${gremio}:${password}` }
   })
+
   .then(res => res.json())
   .then(archivos => {
     const archivosFiltrados = archivos.filter(nombre => {
@@ -435,11 +440,12 @@ function cargarTablaCaceria(fechaInicio, fechaFin) {
     }
 
     const promesas = archivosFiltrados.map(archivo =>
-      fetch(`/api/csv/${gremio}/gift_stats/${archivo}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      }).then(res => res.json())
+        fetch(`/api/csv/${gremio}/gift_stats/${archivo}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `${gremio}:${password}`
+          }
+        }).then(res => res.json())
     );
 
     Promise.all(promesas).then(datosArchivos => {
@@ -532,7 +538,7 @@ thead.innerHTML = th;
   });
 }
 
-  </script>
+</script>
 
 <script>
   document.getElementById('navPurchase').addEventListener('click', () => {
