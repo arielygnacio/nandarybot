@@ -69,4 +69,19 @@ router.get('/:gremio/caceria_por_jugador', autenticarPorHeader, async (req, res)
   }
 });
 
+// Ruta para servir un archivo CSV específico de gift_stats
+router.get('/:gremio/:archivo', autenticarPorHeader, (req, res) => {
+  const { gremio, archivo } = req.params;
+  const archivoDecodificado = decodeURIComponent(archivo);
+  const filePath = path.join(__dirname, '..', 'stats_exported', gremio, 'gift_stats', archivoDecodificado);
+
+  if (!fs.existsSync(filePath)) {
+    console.error('Archivo no encontrado:', filePath);
+    return res.status(404).send('Archivo no encontrado');
+  }
+
+  res.sendFile(filePath);
+});
+
+
 module.exports = router;

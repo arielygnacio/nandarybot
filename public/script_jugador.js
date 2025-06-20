@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const fechasCaceria = jsonCaceria.datos.map(e => e.fecha);
-      const valoresCaceria = jsonCaceria.datos.map(e => Number(e.kills) || 0);
+      const valoresCaceria = jsonCaceria.datos.map(e => Number(e.kills) || 0).slice();
       console.log('Fechas cacería:', fechasCaceria);
       console.log('Valores cacería:', valoresCaceria);
 

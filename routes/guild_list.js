@@ -5,9 +5,17 @@ const { parse } = require('csv-parse/sync');
 const router = express.Router();
 
 const autenticarPorHeader = require('../middleware/auth');
-router.use(autenticarPorHeader); // Aplica autenticación a todas las rutas
+router.use(autenticarPorHeader);
 
-// Ruta para obtener la lista de archivos CSV disponibles
+// 🔍 Detecta el delimitador correcto de cada archivo CSV
+function detectarDelimitador(buffer) {
+  const texto = buffer.toString().split('\n')[0];
+  if (texto.includes(';')) return ';';
+  if (texto.includes(',')) return ',';
+  return ','; // por defecto
+}
+
+// Obtener lista de archivos CSV
 router.get('/files', async (req, res) => {
   const gremio = req.gremio;
   const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'guild_list');
@@ -22,7 +30,7 @@ router.get('/files', async (req, res) => {
   }
 });
 
-// Ruta para obtener un archivo CSV específico
+// Obtener contenido de un archivo específico
 router.get('/:gremio/archivo', async (req, res) => {
   const gremio = req.params.gremio;
   const archivo = req.query.nombre;
@@ -34,10 +42,11 @@ router.get('/:gremio/archivo', async (req, res) => {
 
   try {
     const contenido = await fs.promises.readFile(filePath);
+    const delimiter = detectarDelimitador(contenido);
     const registros = parse(contenido, {
       columns: true,
       skip_empty_lines: true,
-      delimiter: ';'
+      delimiter
     });
     res.json(registros);
   } catch (error) {
@@ -46,13 +55,12 @@ router.get('/:gremio/archivo', async (req, res) => {
   }
 });
 
-
-// Ruta para obtener poder total por fecha
+// Poder total por fecha
 router.get('/:gremio/might_por_fecha', async (req, res) => {
   const gremio = req.params.gremio;
   const { fechaInicio, fechaFin } = req.query;
-
   const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'guild_list');
+
   try {
     const archivos = await fs.promises.readdir(folder);
     const archivosFiltrados = archivos
@@ -68,26 +76,26 @@ router.get('/:gremio/might_por_fecha', async (req, res) => {
 
     for (const archivo of archivosFiltrados) {
       const contenido = await fs.promises.readFile(path.join(folder, archivo));
+      const delimiter = detectarDelimitador(contenido);
       const registros = parse(contenido, {
         columns: true,
         skip_empty_lines: true,
-        delimiter: ';'
+        delimiter
       });
 
       const totalMight = registros.reduce((acc, row) => acc + (parseInt(row["Might"]) || 0), 0);
-      const fecha = archivo.split(' ')[0]; // Extrae la fecha del nombre del archivo
+      const fecha = archivo.split(' ')[0];
       resultados.push({ fecha, total: totalMight });
     }
 
     res.json(resultados);
-
   } catch (error) {
     console.error('Error en might_por_fecha:', error);
     res.status(500).json({ error: 'No se pudieron procesar los archivos' });
   }
 });
 
-// Ruta para obtener listado de jugadores del archivo más reciente
+// Listado de jugadores del archivo más reciente
 router.get('/:gremio/listado_jugadores', async (req, res) => {
   const gremio = req.params.gremio;
   const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'guild_list');
@@ -96,7 +104,7 @@ router.get('/:gremio/listado_jugadores', async (req, res) => {
     const files = await fs.promises.readdir(folder);
     const archivosCSV = files
       .filter(f => f.endsWith('.csv'))
-      .sort((a, b) => b.localeCompare(a)); // Descendente para obtener el más reciente
+      .sort((a, b) => b.localeCompare(a));
 
     const archivoMasReciente = archivosCSV[0];
     if (!archivoMasReciente) {
@@ -104,10 +112,11 @@ router.get('/:gremio/listado_jugadores', async (req, res) => {
     }
 
     const contenido = await fs.promises.readFile(path.join(folder, archivoMasReciente));
+    const delimiter = detectarDelimitador(contenido);
     const registros = parse(contenido, {
       columns: true,
       skip_empty_lines: true,
-      delimiter: ';'
+      delimiter
     });
 
     const jugadores = [...new Set(registros.map(row => row['Name']).filter(Boolean))];
@@ -122,7 +131,7 @@ router.get('/:gremio/listado_jugadores', async (req, res) => {
   }
 });
 
-// Ruta para obtener evolución de poder por jugador entre fechas
+// Evolución de poder por jugador entre fechas
 router.get('/:gremio/poder_por_jugador', async (req, res) => {
   const gremio = req.params.gremio;
   const { jugador, fechaInicio, fechaFin } = req.query;
@@ -148,10 +157,11 @@ router.get('/:gremio/poder_por_jugador', async (req, res) => {
 
     for (const archivo of archivosFiltrados) {
       const contenido = await fs.promises.readFile(path.join(folder, archivo));
+      const delimiter = detectarDelimitador(contenido);
       const registros = parse(contenido, {
         columns: true,
         skip_empty_lines: true,
-        delimiter: ';'
+        delimiter
       });
 
       const jugadorEncontrado = registros.find(row => row.Name === jugador);
@@ -169,7 +179,7 @@ router.get('/:gremio/poder_por_jugador', async (req, res) => {
   }
 });
 
-// Ruta para obtener kills (cacería) por jugador entre fechas
+// Ruta para obtener kills (cacería) por jugador entre fechas desde guild_list
 router.get('/caceria_por_jugador', autenticarPorHeader, async (req, res) => {
   const gremio = req.gremio;
   const { jugador, fechaInicio, fechaFin } = req.query;
@@ -178,7 +188,7 @@ router.get('/caceria_por_jugador', autenticarPorHeader, async (req, res) => {
     return res.status(400).json({ error: 'Faltan parámetros: jugador, fechaInicio o fechaFin' });
   }
 
-  const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'gift_stats');
+  const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'guild_list');
 
   try {
     const archivos = await fs.promises.readdir(folder);
@@ -216,7 +226,44 @@ router.get('/caceria_por_jugador', autenticarPorHeader, async (req, res) => {
   }
 });
 
+// Ruta para obtener la lista de archivos CSV de gift_stats
+router.get('/gift_stats/files', async (req, res) => {
+  const gremio = req.gremio;
+  const folder = path.join(__dirname, '..', 'stats_exported', gremio, 'gift_stats');
 
+  try {
+    const files = await fs.promises.readdir(folder);
+    const archivosCSV = files.filter(name => name.endsWith('.csv')).sort();
+    res.json(archivosCSV);
+  } catch (error) {
+    console.error('Error al leer archivos gift_stats:', error);
+    res.status(404).json({ error: 'Archivos no encontrados' });
+  }
+});
+
+// Ruta para obtener el contenido de un archivo específico de gift_stats
+router.get('/gift_stats/:gremio/:archivo', async (req, res) => {
+  const gremio = req.params.gremio;
+  const archivo = req.params.archivo;
+  const filePath = path.join(__dirname, '..', 'stats_exported', gremio, 'gift_stats', archivo);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'Archivo no encontrado' });
+  }
+
+  try {
+    const contenido = await fs.promises.readFile(filePath);
+    const registros = parse(contenido, {
+      columns: true,
+      skip_empty_lines: true,
+      delimiter: ';'
+    });
+    res.json(registros);
+  } catch (error) {
+    console.error('Error leyendo archivo gift_stats:', error);
+    res.status(500).json({ error: 'Error al procesar el archivo' });
+  }
+});
 
 
 module.exports = router;
