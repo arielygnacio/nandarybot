@@ -150,12 +150,12 @@
           <li class="nav-item me-3">
             <a href="/index.html" class="nav-link">Inicio</a>
           </li>
-          <li class="nav-item me-3">
+          <!--li class="nav-item me-3">
             <a href="#" id="linkCaceria" class="nav-link">Cacería</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#" id="navPurchase">Cofres de Paga</a>
-          </li>
+          </li-->
           <li class="nav-item">
             <a href="#" id="linkCerrarSesion" class="nav-link">Cerrar sesión</a>
           </li>
@@ -169,10 +169,24 @@
     <div class="container my-4 bg-white bg-opacity-75 p-4 rounded" id="contenido">
       <h2 class="mb-4 text-center">Estadísticas del gremio</h2>
 
+      <div class="text-center mb-4">
+        <button class="btn btn-outline-danger me-2" id="btnMostrarCaceria">
+          <i class="bi bi-crosshair"></i> Ver Cacería
+        </button>
+        <button class="btn btn-outline-success" id="btnMostrarCofres">
+          <i class="bi bi-box-seam"></i> Ver Cofres de Paga
+        </button>
+      </div>
+
+
       <!-- GRÁFICOS -->
       <div class="row gx-4">
 
         <!-- CONTENEDOR DE CACERÍA -->
+        <div class="text-center mb-3">
+          <span id="fechaCaceria" class="badge bg-dark fs-6 px-3 py-2"></span>
+        </div>
+
         <div id="seccionCaceria" class="mt-5 d-none">
           <h3 class="mb-3 text-center">Cacería por Jugador</h3>
 
@@ -426,11 +440,17 @@
       });
 
 
-    document.getElementById('linkCaceria').addEventListener('click', () => {
+    function mostrarSeccionCaceria() {
       document.querySelectorAll('.col-md-6').forEach(el => el.classList.add('d-none')); // Oculta los gráficos
       document.getElementById('seccionCaceria').classList.remove('d-none');             // Muestra la tabla
       document.getElementById('contenido').scrollIntoView({ behavior: 'smooth' });
-    });
+
+      cargarUltimaCaceria(); // 👈 esta línea es la que faltaba
+    }
+
+    document.getElementById('btnMostrarCaceria')?.addEventListener('click', mostrarSeccionCaceria);
+    document.getElementById('linkCaceria')?.addEventListener('click', mostrarSeccionCaceria);
+
 
 
     document.getElementById('btnFiltrarFechas').addEventListener('click', () => {
@@ -452,125 +472,241 @@
 
 
     function cargarTablaCaceria(fechaInicio, fechaFin) {
-  const columnasSeleccionadas = Array.from(document.querySelectorAll('.columna-check:checked')).map(c => c.value);
+      const columnasSeleccionadas = Array.from(document.querySelectorAll('.columna-check:checked')).map(c => c.value);
 
-  fetch(`/api/gift_stats/files`, {
-    method: 'GET',
-    headers: { 'Authorization': `${gremio}:${password}` }
-  })
-    .then(res => res.json())
-    .then(archivos => {
-      const archivosFiltrados = archivos.filter(nombre => {
-        const fechaStr = nombre.split(" ")[0];
-        return fechaStr >= fechaInicio && fechaStr <= fechaFin;
-      }).sort().reverse();
+      fetch(`/api/gift_stats/files`, {
+        method: 'GET',
+        headers: { 'Authorization': `${gremio}:${password}` }
+      })
+        .then(res => res.json())
+        .then(archivos => {
+          const archivosFiltrados = archivos.filter(nombre => {
+            const fechaStr = nombre.split(" ")[0];
+            return fechaStr >= fechaInicio && fechaStr <= fechaFin;
+          }).sort().reverse();
 
-      if (archivosFiltrados.length === 0) {
-        document.getElementById('tablaCaceriaBody').innerHTML = "<tr><td colspan='8'>No hay datos en este rango de fechas.</td></tr>";
-        return;
-      }
+          if (archivosFiltrados.length === 0) {
+            document.getElementById('tablaCaceriaBody').innerHTML = "<tr><td colspan='8'>No hay datos en este rango de fechas.</td></tr>";
+            return;
+          }
 
-      const promesas = archivosFiltrados.map(archivo =>
-        fetch(`/api/gift_stats/${gremio}/${encodeURIComponent(archivo)}`, {
-          method: 'GET',
-          headers: { 'Authorization': `${gremio}:${password}` }
-        })
-          .then(res => res.text()) // 👈 leemos como texto plano
-          .then(csvText => {
-            const filas = csvText.trim().split('\n');
-            const encabezados = filas[0].split(';');
+          const promesas = archivosFiltrados.map(archivo =>
+            fetch(`/api/gift_stats/${gremio}/${encodeURIComponent(archivo)}`, {
+              method: 'GET',
+              headers: { 'Authorization': `${gremio}:${password}` }
+            })
+              .then(res => res.text()) // 👈 leemos como texto plano
+              .then(csvText => {
+                const filas = csvText.trim().split('\n');
+                const encabezados = filas[0].split(';');
 
-            return filas.slice(1).map(fila => {
-              const valores = fila.split(';');
-              const objeto = {};
-              encabezados.forEach((enc, i) => {
-                objeto[enc] = valores[i];
+                return filas.slice(1).map(fila => {
+                  const valores = fila.split(';');
+                  const objeto = {};
+                  encabezados.forEach((enc, i) => {
+                    objeto[enc] = valores[i];
+                  });
+                  return objeto;
+                });
+              })
+          );
+
+          Promise.all(promesas).then(datosArchivos => {
+            const mapa = new Map();
+
+            datosArchivos.forEach(datos => {
+              datos.forEach(fila => {
+                const id = fila['User ID'];
+                const name = fila['Name'];
+
+                if (!mapa.has(id)) {
+                  mapa.set(id, { id, name, L1: 0, L2: 0, L3: 0, L4: 0, L5: 0 });
+                }
+
+                const jugador = mapa.get(id);
+                jugador.L1 += parseInt(fila['L1 (Hunt)'] || 0);
+                jugador.L2 += parseInt(fila['L2 (Hunt)'] || 0);
+                jugador.L3 += parseInt(fila['L3 (Hunt)'] || 0);
+                jugador.L4 += parseInt(fila['L4 (Hunt)'] || 0);
+                jugador.L5 += parseInt(fila['L5 (Hunt)'] || 0);
               });
-              return objeto;
             });
+
+            // Encabezado dinámico
+            const thead = document.querySelector('#tablaCaceriaBody').parentElement.querySelector('thead tr');
+            let th = `<th>User ID</th><th>Name</th>`;
+            columnasSeleccionadas.forEach(col => {
+              const nivel = col.replace('L1', 'Lvl 1').replace('L2', 'Lvl 2').replace('L3', 'Lvl 3').replace('L4', 'Lvl 4').replace('L5', 'Lvl 5');
+              th += `<th>${nivel}</th>`;
+            });
+            th += `<th>Total</th>`;
+            thead.innerHTML = th;
+
+            // Clasificación
+            const objetivo = parseInt(document.getElementById('objetivoCaceria').value || 0);
+            const verdes = [], naranjas = [], rojos = [];
+
+            Array.from(mapa.values()).forEach(j => {
+              let total = 0;
+              const pesos = { L1: 1, L2: 4, L3: 12, L4: 36, L5: 72 };
+              columnasSeleccionadas.forEach(col => {
+                total += j[col] * pesos[col];
+              });
+              j.total = total;
+
+              if (total >= objetivo) verdes.push(j);
+              else if (total > 0) naranjas.push(j);
+              else rojos.push(j);
+            });
+
+            verdes.sort((a, b) => b.total - a.total);
+            naranjas.sort((a, b) => b.total - a.total);
+            rojos.sort((a, b) => b.total - a.total);
+
+            const generarFilas = (grupo, clase) => grupo.map(j => {
+              let celdas = `<td>${j.id}</td><td>${j.name}</td>`;
+              columnasSeleccionadas.forEach(col => {
+                celdas += `<td>${j[col]}</td>`;
+              });
+              celdas += `<td><strong>${j.total}</strong></td>`;
+              return `<tr class="${clase}">${celdas}</tr>`;
+            });
+
+            const filasOrdenadas = [
+              ...generarFilas(verdes, 'table-success'),
+              ...generarFilas(naranjas, 'table-warning'),
+              ...generarFilas(rojos, 'table-danger')
+            ].join("");
+
+            document.getElementById('tablaCaceriaBody').innerHTML = filasOrdenadas;
+          });
+        });
+    }
+    function cargarUltimaCaceria() {
+      console.log("Cargando la última cacería...");
+      const columnasSeleccionadas = Array.from(document.querySelectorAll('.columna-check:checked')).map(c => c.value);
+
+      fetch(`/api/gift_stats/files`, {
+        method: 'GET',
+        headers: { 'Authorization': `${gremio}:${password}` }
+      })
+        .then(res => res.json())
+        .then(archivos => {
+          const ultimoArchivo = archivos.sort().reverse()[0];
+
+          // Mostrar la fecha (asumiendo que el nombre del archivo comienza con la fecha)
+          const spanFecha = document.getElementById('fechaCaceria');
+          if (spanFecha && ultimoArchivo) {
+            const fechaCruda = ultimoArchivo.split(" ")[0]; // "2025-06-19"
+            const [año, mes, dia] = fechaCruda.split("-");
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            const fechaFormateada = `${parseInt(dia)} de ${meses[parseInt(mes) - 1]} de ${año}`;
+
+            spanFecha.textContent = `Último registro: ${fechaFormateada}`;
+          }
+
+
+          if (!ultimoArchivo) {
+            document.getElementById('tablaCaceriaBody').innerHTML = "<tr><td colspan='8'>No hay archivos disponibles.</td></tr>";
+            return;
+          }
+
+          return fetch(`/api/gift_stats/${gremio}/${encodeURIComponent(ultimoArchivo)}`, {
+            method: 'GET',
+            headers: { 'Authorization': `${gremio}:${password}` }
           })
-      );
+            .then(res => res.text())
+            .then(csvText => {
+              const filas = csvText.trim().split('\n');
+              const encabezados = filas[0].split(';');
+              const datos = filas.slice(1).map(fila => {
+                const valores = fila.split(';');
+                const obj = {};
+                encabezados.forEach((enc, i) => {
+                  obj[enc] = valores[i];
+                });
+                return obj;
+              });
 
-      Promise.all(promesas).then(datosArchivos => {
-        const mapa = new Map();
+              const mapa = new Map();
 
-        datosArchivos.forEach(datos => {
-          datos.forEach(fila => {
-            const id = fila['User ID'];
-            const name = fila['Name'];
+              datos.forEach(fila => {
+                const id = fila['User ID'];
+                const name = fila['Name'];
 
-            if (!mapa.has(id)) {
-              mapa.set(id, { id, name, L1: 0, L2: 0, L3: 0, L4: 0, L5: 0 });
-            }
+                if (!mapa.has(id)) {
+                  mapa.set(id, { id, name, L1: 0, L2: 0, L3: 0, L4: 0, L5: 0 });
+                }
 
-            const jugador = mapa.get(id);
-            jugador.L1 += parseInt(fila['L1 (Hunt)'] || 0);
-            jugador.L2 += parseInt(fila['L2 (Hunt)'] || 0);
-            jugador.L3 += parseInt(fila['L3 (Hunt)'] || 0);
-            jugador.L4 += parseInt(fila['L4 (Hunt)'] || 0);
-            jugador.L5 += parseInt(fila['L5 (Hunt)'] || 0);
-          });
+                const jugador = mapa.get(id);
+                jugador.L1 += parseInt(fila['L1 (Hunt)'] || 0);
+                jugador.L2 += parseInt(fila['L2 (Hunt)'] || 0);
+                jugador.L3 += parseInt(fila['L3 (Hunt)'] || 0);
+                jugador.L4 += parseInt(fila['L4 (Hunt)'] || 0);
+                jugador.L5 += parseInt(fila['L5 (Hunt)'] || 0);
+              });
+
+              // Encabezado dinámico
+              const thead = document.querySelector('#tablaCaceriaBody').parentElement.querySelector('thead tr');
+              let th = `<th>User ID</th><th>Name</th>`;
+              columnasSeleccionadas.forEach(col => {
+                const nivel = col.replace('L1', 'Lvl 1').replace('L2', 'Lvl 2').replace('L3', 'Lvl 3').replace('L4', 'Lvl 4').replace('L5', 'Lvl 5');
+                th += `<th>${nivel}</th>`;
+              });
+              th += `<th>Total</th>`;
+              thead.innerHTML = th;
+
+              // Clasificación
+              const objetivo = parseInt(document.getElementById('objetivoCaceria').value || 0);
+              const verdes = [], naranjas = [], rojos = [];
+
+              Array.from(mapa.values()).forEach(j => {
+                let total = 0;
+                const pesos = { L1: 1, L2: 4, L3: 12, L4: 36, L5: 72 };
+                columnasSeleccionadas.forEach(col => {
+                  total += j[col] * pesos[col];
+                });
+                j.total = total;
+
+                if (total >= objetivo) verdes.push(j);
+                else if (total > 0) naranjas.push(j);
+                else rojos.push(j);
+              });
+
+              verdes.sort((a, b) => b.total - a.total);
+              naranjas.sort((a, b) => b.total - a.total);
+              rojos.sort((a, b) => b.total - a.total);
+
+              const generarFilas = (grupo, clase) => grupo.map(j => {
+                let celdas = `<td>${j.id}</td><td>${j.name}</td>`;
+                columnasSeleccionadas.forEach(col => {
+                  celdas += `<td>${j[col]}</td>`;
+                });
+                celdas += `<td><strong>${j.total}</strong></td>`;
+                return `<tr class="${clase}">${celdas}</tr>`;
+              });
+
+              const filasOrdenadas = [
+                ...generarFilas(verdes, 'table-success'),
+                ...generarFilas(naranjas, 'table-warning'),
+                ...generarFilas(rojos, 'table-danger')
+              ].join("");
+
+              document.getElementById('tablaCaceriaBody').innerHTML = filasOrdenadas;
+            });
         });
-
-        // Encabezado dinámico
-        const thead = document.querySelector('#tablaCaceriaBody').parentElement.querySelector('thead tr');
-        let th = `<th>User ID</th><th>Name</th>`;
-        columnasSeleccionadas.forEach(col => {
-          const nivel = col.replace('L1', 'Lvl 1').replace('L2', 'Lvl 2').replace('L3', 'Lvl 3').replace('L4', 'Lvl 4').replace('L5', 'Lvl 5');
-          th += `<th>${nivel}</th>`;
-        });
-        th += `<th>Total</th>`;
-        thead.innerHTML = th;
-
-        // Clasificación
-        const objetivo = parseInt(document.getElementById('objetivoCaceria').value || 0);
-        const verdes = [], naranjas = [], rojos = [];
-
-        Array.from(mapa.values()).forEach(j => {
-          let total = 0;
-          const pesos = { L1: 1, L2: 4, L3: 12, L4: 36, L5: 72 };
-          columnasSeleccionadas.forEach(col => {
-            total += j[col] * pesos[col];
-          });
-          j.total = total;
-
-          if (total >= objetivo) verdes.push(j);
-          else if (total > 0) naranjas.push(j);
-          else rojos.push(j);
-        });
-
-        verdes.sort((a, b) => b.total - a.total);
-        naranjas.sort((a, b) => b.total - a.total);
-        rojos.sort((a, b) => b.total - a.total);
-
-        const generarFilas = (grupo, clase) => grupo.map(j => {
-          let celdas = `<td>${j.id}</td><td>${j.name}</td>`;
-          columnasSeleccionadas.forEach(col => {
-            celdas += `<td>${j[col]}</td>`;
-          });
-          celdas += `<td><strong>${j.total}</strong></td>`;
-          return `<tr class="${clase}">${celdas}</tr>`;
-        });
-
-        const filasOrdenadas = [
-          ...generarFilas(verdes, 'table-success'),
-          ...generarFilas(naranjas, 'table-warning'),
-          ...generarFilas(rojos, 'table-danger')
-        ].join("");
-
-        document.getElementById('tablaCaceriaBody').innerHTML = filasOrdenadas;
-      });
-    });
-}
+    }
 
 
   </script>
 
+
+
   <script>
-    document.getElementById('navPurchase').addEventListener('click', () => {
+    document.getElementById('btnMostrarCofres')?.addEventListener('click', () => {
       let gremio = new URLSearchParams(window.location.search).get('gremio');
       if (!gremio) {
-        gremio = localStorage.getItem('gremio_actual');
+        gremio = localStorage.getItem('gremio_actual') || localStorage.getItem('gremio');
       }
 
       if (!gremio) {
@@ -582,8 +718,8 @@
       localStorage.setItem('gremio_actual', gremio);
       window.location.href = `paid_chest.html?gremio=${gremio}`;
     });
-
   </script>
+
 
 
 
