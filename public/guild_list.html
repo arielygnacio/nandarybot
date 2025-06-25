@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/ico" href="/logo.png" />
   <style>
-    html, body {
+    html,
+    body {
       height: 100%;
       margin: 0;
       padding: 0;
@@ -47,7 +49,7 @@
       backdrop-filter: blur(5px);
     }
 
-    .navbar .nav-link, 
+    .navbar .nav-link,
     .navbar .navbar-brand {
       font-family: 'Dancing Script', cursive;
       font-size: 1.3rem;
@@ -91,6 +93,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Navbar -->
@@ -100,94 +103,118 @@
         <img src="/logo.png" alt="Logo" style="max-height: 40px;" class="me-2" />
         <span class="logo-title">Nandary Bot</span>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-            
-            <li class="nav-item"><a class="nav-link" href="#" id="navEstadisticas">Estadísticas del Gremio</a></li>
+          <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+
+          <li class="nav-item"><a class="nav-link" href="#" id="navEstadisticas">Estadísticas del Gremio</a></li>
         </ul>
 
       </div>
     </div>
   </nav>
 
-  
+
 
   <main>
-  <div class="container my-4 bg-white bg-opacity-75 p-4 rounded" id="contenidoGuildList">
-    <h2 class="text-center mt-5 mb-3 fw-bold text-white px-4 py-3 rounded"
-    style="background-color: rgba(0, 0, 0, 0.4); text-shadow: 2px 2px 6px rgba(0,0,0,0.8);">
-  Listado de Miembros del Gremio
-</h2>
+    <div class="container my-4 bg-white bg-opacity-75 p-4 rounded" id="contenidoGuildList">
+
+      <div class="text-center mb-4">
+        <button id="btnVerEstadisticas" class="btn btn-primary">
+          <i class="bi bi-bar-chart-fill"></i> Ver estadísticas del gremio
+        </button>
+      </div>
 
 
 
-    <div class="mb-4 d-flex justify-content-center gap-3 flex-wrap">
-  <select id="selectorArchivosGuildList" class="form-select" style="max-width: 300px;">
-    <option disabled selected>Cargando archivos...</option>
-  </select>
-</div>
+      <h2 class="text-center mt-5 mb-3 fw-bold text-white px-4 py-3 rounded"
+        style="background-color: rgba(0, 0, 0, 0.4); text-shadow: 2px 2px 6px rgba(0,0,0,0.8);">
+        Listado de Miembros del Gremio
+      </h2>
 
 
-    <!-- TABLA DE GUILD LIST -->
-    <div class="table-responsive mt-3">
-      <table class="table table-bordered text-center">
-        <thead class="table-dark">
-          <tr>
-            <th>IGG ID</th>
-            <th>Nombre</th>
-            <th>Rango</th>
-            <th>Poder</th>
-            <th>Poder Anterior</th>
-            <th>Variación</th>
-            <th>Kills</th>
-            <th>Kills Anteriores</th>
-            <th>Variación K</th>
-          </tr>
-        </thead>
-        <tbody id="tablaGuildListBody">
-          <!-- Filas dinámicas -->
-        </tbody>
-      </table>
+
+      <div class="mb-4 d-flex justify-content-center gap-3 flex-wrap">
+        <select id="selectorArchivosGuildList" class="form-select" style="max-width: 300px;">
+          <option disabled selected>Cargando archivos...</option>
+        </select>
+      </div>
+
+
+      <!-- TABLA DE GUILD LIST -->
+      <div class="table-responsive mt-3">
+        <table class="table table-bordered text-center">
+          <thead class="table-dark">
+            <tr>
+              <th>IGG ID</th>
+              <th>Nombre</th>
+              <th>Rango</th>
+              <th>Poder</th>
+              <th>Poder Anterior</th>
+              <th>Variación</th>
+              <th>Kills</th>
+              <th>Kills Anteriores</th>
+              <th>Variación K</th>
+            </tr>
+          </thead>
+          <tbody id="tablaGuildListBody">
+            <!-- Filas dinámicas -->
+          </tbody>
+        </table>
+      </div>
+
     </div>
-
-  </div>
-</main>
+  </main>
 
   <!-- Footer -->
   <footer class="text-center py-3 mt-5">
     <div class="container">
       <p class="mb-0">
-        <i class="bi bi-c-circle"></i> 2025 Visor de Gremios | Hecho con <i class="bi bi-heart-fill text-danger"></i> por Arielygnacio
+        <i class="bi bi-c-circle"></i> 2025 Visor de Gremios | Hecho con <i class="bi bi-heart-fill text-danger"></i>
+        por Arielygnacio
       </p>
     </div>
   </footer>
 
   <script>
     document.getElementById('navEstadisticas').addEventListener('click', (e) => {
-  e.preventDefault();
+      e.preventDefault();
 
-  const gremio = localStorage.getItem('gremio');
-  const password = localStorage.getItem('auth_' + gremio);
+      const gremio = localStorage.getItem('gremio');
+      const password = localStorage.getItem('auth_' + gremio);
 
-  if (!gremio || !password) {
-    alert('Acceso inválido. Volvé a iniciar sesión.');
-    window.location.href = '/'; // o a tu pantalla de login
-    return;
-  }
+      if (!gremio || !password) {
+        alert('Acceso inválido. Volvé a iniciar sesión.');
+        window.location.href = '/'; // o a tu pantalla de login
+        return;
+      }
 
-  // Redirigimos a la nueva página
-  window.location.href = `estadisticas.html?gremio=${encodeURIComponent(gremio)}`;
-});
+      // Redirigimos a la nueva página
+      window.location.href = `estadisticas.html?gremio=${encodeURIComponent(gremio)}`;
+    });
 
   </script>
+
+  <script>
+  document.getElementById('btnVerEstadisticas').addEventListener('click', () => {
+    const gremio = localStorage.getItem('gremio_actual') || localStorage.getItem('gremio');
+    if (gremio) {
+      window.location.href = `estadisticas.html?gremio=${gremio}`;
+    } else {
+      alert("No se pudo determinar el gremio actual.");
+    }
+  });
+</script>
+
 
   <script src="/script_guild_list.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
+
 </html>
