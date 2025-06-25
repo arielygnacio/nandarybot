@@ -170,13 +170,14 @@
       <h2 class="mb-4 text-center">Estadísticas del gremio</h2>
 
       <div class="text-center mb-4">
-        <button class="btn btn-outline-danger me-2" id="btnMostrarCaceria">
+        <button class="btn btn-danger me-2" id="btnMostrarCaceria">
           <i class="bi bi-crosshair"></i> Ver Cacería
         </button>
-        <button class="btn btn-outline-success" id="btnMostrarCofres">
+        <button class="btn btn-success" id="btnMostrarCofres">
           <i class="bi bi-box-seam"></i> Ver Cofres de Paga
         </button>
       </div>
+
 
 
       <!-- GRÁFICOS -->
@@ -189,8 +190,8 @@
 
         <div id="seccionCaceria" class="mt-5 d-none">
           <h3 class="mb-3 text-center">Cacería por Jugador</h3>
-
-
+          
+          <h4 class="mb-3 text-center">Ingrese la Fecha a consultar</h4>
 
 
           <!-- FILTRO DE FECHAS Y CHECKBOXES DE COLUMNAS -->
@@ -200,6 +201,8 @@
               <input type="date" id="fechaFin" class="form-control" style="max-width: 200px;">
               <button class="btn btn-primary" id="btnFiltrarFechas">Filtrar</button>
             </div>
+
+            <h4 class="mb-3 text-center">Seleccione el Nivel de Montruos</h4>
 
             <div class="d-flex justify-content-center gap-3 flex-wrap">
               <div class="form-check">
